@@ -15,7 +15,7 @@ python psites.py search -h
    git clone https://github.com/milechin/psites.git
    ```
 
-2. The `example` directory contains two sub-directories, `aoi_geojson` and `output`.
+2. The `example` directory contains a directory called `aoi_geojson`.
    The `aoi_geojson` directory has two example GeoJSON files which contain a polygon representing the area of interest.  You can replace these with your own GeoJSON files for the sites of interest for you. The following are the requirements of the GeoJSON file:
    * The GeoJSON must contain one single polygon.
    * The filename of the GeoJSON is used throughout this script to track search results and to place orders.  So choose a name that is meaningful.
