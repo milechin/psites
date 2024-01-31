@@ -354,13 +354,13 @@ class aoi_order(aoi):
         
         summary_text = "Preparing order for {}".format(self.site_name)
         chunks = [self.id_list[x:x+400] for x in range(0, len(self.id_list), 400)]
-        summary_text = "{}Number of chunks in the order: {}\n".format(summary_text, len(chunks))
+        summary_text = "{}\nNumber of chunks: {}\n".format(summary_text, len(chunks))
         self.order_chunks = chunks
         if(len(chunks) >= 80):
             self.order_chunks = None
             raise Exception("More than 80 chunks will exceed Planet API order capacity.  Update search criteria to reduce number of results returned.")
             
-        self.__write_log__(summary_text)
+        print(summary_text)
         
         
         headers = {'content-type': 'application/json'}
@@ -407,7 +407,7 @@ class aoi_order(aoi):
                     order_id = response.json()['id']
                     status = "Accepted"
                 
-                self.__write_log__("Chunk: {} \t Order Name: {} \t Status: {} \t Order ID: {}".format(count, order_name, status, order_id))
+                print("Order Name: {} \nStatus: {} \nOrder ID: {}\n".format(order_name, status, order_id))
                 
                     
         
@@ -1063,7 +1063,7 @@ if __name__ == "__main__":
         print("\n2.) Run the following command with appropriate substitutions.")
         print("{} order -bundle <bundle_name> -item <item_name> min_year max_year path_to_geojson".format(os.path.basename(__file__)))
         print("\nEXAMPLE:")
-        print("{} order -bundle analytic_udm2 -item PSScene {} {} {}".format(os.path.basename(__file__), args.min_year, args.max_year, args.geojson_files))
+        print("pyton {} order -bundle analytic_udm2 -item PSScene {} {} {}".format(os.path.basename(__file__), args.min_year, args.max_year, args.geojson_files))
           
 
     elif args.command == "order":
@@ -1081,8 +1081,15 @@ if __name__ == "__main__":
         prefix_flag =  "-prefix "+ args.order_name_prefix  if args.order_name_prefix != None else ""
         
         print("To check on order, use the command below:\n")
-        print("{} check --min_year {} --max_year {} --geojson_files {}".format(os.path.basename(__file__), args.min_year, args.max_year, args.geojson_files, prefix_flag))
-            
+        arg_min_year = "-min_y {} ".format(args.min_year) if args.min_year != None else ""
+        arg_max_year = "-max_y {} ".format(args.max_year) if args.max_year != None else ""
+        arg_gjson = "-gjson {} ".format(args.geojson_files) if args.geojson_files != None else ""
+        arg_prefix = "-prefix {} ".format(args.order_name_prefix) if args.order_name_prefix != None else ""
+        
+        print("python {} check {}{}{}{}".format(os.path.basename(__file__),arg_prefix, arg_min_year, arg_max_year, arg_gjson))
+        
+        
+        
         
     elif args.command == "check":
         
@@ -1106,9 +1113,9 @@ if __name__ == "__main__":
         arg_min_year = "-min_y {} ".format(args.min_year) if args.min_year != None else ""
         arg_max_year = "-max_y {} ".format(args.max_year) if args.max_year != None else ""
         arg_gjson = "-gjson {} ".format(args.geojson_files) if args.geojson_files != None else ""
-        arg_prefix = "-prefix {} ".format(args.prefix) if args.prefix != None else ""
+        arg_prefix = "-prefix {} ".format(args.order_name_prefix) if args.order_name_prefix != None else ""
         
-        print("{} download {}{}{}{}{}{} <YOUR OUTPUT PATH>".format(os.path.basename(__file__), arg_name, arg_date, arg_min_year, arg_max_year, arg_prefix, arg_gjson))
+        print("python {} download {}{}{}{}{}{} <YOUR OUTPUT PATH>".format(os.path.basename(__file__), arg_name, arg_date, arg_min_year, arg_max_year, arg_prefix, arg_gjson))
         
     elif args.command == "download":
         
@@ -1135,7 +1142,7 @@ if __name__ == "__main__":
         arg_output = "{} ".format(args.output_dir) if args.output_dir != None else ""
         
         print("\nNOTE: To try downloading again, run the command below:")
-        print("{} download {}{}{}{}{}{} {}".format(os.path.basename(__file__), arg_name, arg_date, arg_min_year, arg_max_year, arg_prefix, arg_gjson, arg_output))
+        print("python {} download {}{}{}{}{}{} {}".format(os.path.basename(__file__), arg_name, arg_date, arg_min_year, arg_max_year, arg_prefix, arg_gjson, arg_output))
         
         
     else:
