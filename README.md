@@ -54,6 +54,8 @@ python psites.py search -h
 3. For each GeoJSON file a search result will appear in the console.  You may need to scroll up to see it.  Below is an example of the search result for PlumIsland.
 
     ```console
+    ...
+    
     ############################################
     ###### SUMMARY OF SEARCH RESULTS  ##########
     ############################################
@@ -87,11 +89,15 @@ python psites.py search -h
 	    ortho_analytic_4b_xml         215    78%
 	    ortho_udm2                    276    100%
 	    ortho_visual                  276    100%
+
+    ...
     ```
     The search result will group the results by year.  For each year it will indicate the "Total Items" found and the "Item Type" (When placing an order, you will need to specify an "Item Type".). The table that follows show the asset types derived from the "items".  Not all the items are included in the creation of assetts and so the count and percent of total items are included.  
 
     Further down the summary, the Item Type and Asset Type definitions are printed out.  Below is an example of the output showing definitions for "PSScene" item type and "basic_analytic_4b_rpc" asset name:
    ``` console
+   ...
+   
     ITEM TYPE DEFINITIONS
     PSScene
     PlanetScope Scene 
@@ -102,6 +108,7 @@ python psites.py search -h
     basic_analytic_4b_rpc
     Display Name: Unprojected top of atmosphere radiance (4 Band) rational polynomial coefficients for rectification 
     Description: Rational polynomial coefficient for unorthorectified analytic image stored as 12-bit digital numbers.
+   
    ...
 
    ```
@@ -123,6 +130,8 @@ https://developers.planet.com/apis/orders/product-bundles-reference/
 
    If you get an Exception like the one below:
    ```console
+   ...
+   
    Exception: Order name 'PlumIsland_2016_2017*' already exists on the Planet Server.
    Use --order_name_prefix flag to make order name unique or change the name of the geojson file.
    ```
@@ -134,25 +143,30 @@ https://developers.planet.com/apis/orders/product-bundles-reference/
 
 3. Depending how big your order is for a site, the script may split it up into "chunks".  If Planet API accepts the order, the "status" will be "Accepted", as is shown below for sites "PlumIsland" and "ProvinceTown":
    ```console
+   ...
+   
    Preparing order for PlumIsland
    Number of chunks: 1
 
-   Order Name: 04_PlumIsland_2016_2017_chunk_0 
+   Order Name: PlumIsland_2016_2017_chunk_0 
    Status: Accepted 
    Order ID: 4be0c600-9600-4768-b9b1-156987fb5a17
 
    Preparing order for ProvinceTown
    Number of chunks: 1
 
-   Order Name: 04_ProvinceTown_2016_2017_chunk_0 
+   Order Name: ProvinceTown_2016_2017_chunk_0 
    Status: Accepted 
    Order ID: 7a9cf439-faf1-4101-b1bd-fbc9424bba43
+
+   ...
    ```
 
 ## Check on Order Status
 1. The order may take some time to process by the Planet's server.  You can check the status of your order by using the **check** commmand.  When you placed the order in the previous step, a suggested check command is printed to the console that you can use to check the status of the specific order you placed.
    ```console
    ...
+   
    To check on order, use the command below:
 
    psites.py check -min_y 2016 -max_y 2017 -gjson ./example/aoi_geojson 
@@ -165,6 +179,8 @@ https://developers.planet.com/apis/orders/product-bundles-reference/
   
      Below is an example output from the **check** command.
      ```console
+     ...
+     
      ######## FAILED ORDERS ###########
      Order Name                          Status   Created On                ID                                            Last Message
      ProvinceTown_2016_2017_chunk_0      failed   2024-01-31T17:51:34.395Z  7a9cf439-faf1-4101-b1bd-fbc9424bba43          Quota check failed - Over quota
@@ -173,12 +189,15 @@ https://developers.planet.com/apis/orders/product-bundles-reference/
      Order Name                          Status   Created On                ID                                       Last Message
      ProvinceTown_2016_2017_chunk_0      success  2024-01-24T16:53:20.420Z  a9737d01-5940-400d-9c88-566377b2624f     Manifest delivery completed
 
+     ...
+
      ```
 ## Downloading Data
 When running the **check** command, the last line printed to the console provides the **download** command you can use to download the orders you see summarized above.  Below is an example console print out you might get:
    
 ```console
 ...
+
 Use the following download command to download the files for successful orders listed above:
 psites.py download -min_y 2016 -max_y 2017 -gjson ./example/aoi_geojson  <YOUR OUTPUT PATH>
 ```
