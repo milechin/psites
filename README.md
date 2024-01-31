@@ -117,6 +117,34 @@ https://developers.planet.com/apis/orders/product-bundles-reference/
    
    For our example we will request the "analytic_udm2" bundle of item "PSScene":
    ```bash
-   psites.py order -bundle analytic_udm2 -item PSScene 2016 2017 ./example/aoi_geojson
+   python psites.py order -bundle analytic_udm2 -item PSScene 2016 2017 ./example/aoi_geojson
    ```
 
+
+   If you get an Exception like the one below:
+   ```console
+   Exception: Order name 'PlumIsland_2016_2017*' already exists on the Planet Server.
+   Use --order_name_prefix flag to make order name unique or change the name of the geojson file.
+   ```
+   This indicates that the order name already exists.  Ordernames are used to track which orders are associated with which GeoJSON site.  To make the order name unique, include the `--order_name_prefix <string>` to add a prefix to the order name.  For example:
+   ```bash
+   python psites.py order --order_name_prefix 01 -bundle analytic_udm2 -item PSScene 2016 2017 ./example/aoi_geojson
+   ```
+   The command above will generate an order name `01_PlumIsland_2016_2017*`
+
+3. Depending how big your order is for a site, the script may split it up into "chunks".  If the order is placed successfully, you should see messages similiar to the ones below where the "status" is indicated as "Accepted":
+   ```console
+   Preparing order for PlumIsland
+   Number of chunks: 1
+
+   Order Name: 04_PlumIsland_2016_2017_chunk_0 
+   Status: Accepted 
+   Order ID: 4be0c600-9600-4768-b9b1-156987fb5a17
+
+   Preparing order for ProvinceTown
+   Number of chunks: 1
+
+   Order Name: 04_ProvinceTown_2016_2017_chunk_0 
+   Status: Accepted 
+   Order ID: 7a9cf439-faf1-4101-b1bd-fbc9424bba43
+  ```
