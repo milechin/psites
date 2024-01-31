@@ -1063,7 +1063,7 @@ if __name__ == "__main__":
         print("\n2.) Run the following command with appropriate substitutions.")
         print("{} order -bundle <bundle_name> -item <item_name> min_year max_year path_to_geojson".format(os.path.basename(__file__)))
         print("\nEXAMPLE:")
-        print("pyton {} order -bundle analytic_udm2 -item PSScene {} {} {}".format(os.path.basename(__file__), args.min_year, args.max_year, args.geojson_files))
+        print("python {} order -bundle analytic_udm2 -item PSScene {} {} {}".format(os.path.basename(__file__), args.min_year, args.max_year, args.geojson_files))
           
 
     elif args.command == "order":
