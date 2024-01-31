@@ -132,7 +132,7 @@ https://developers.planet.com/apis/orders/product-bundles-reference/
    ```
    The command above will generate an order name `01_PlumIsland_2016_2017*`
 
-3. Depending how big your order is for a site, the script may split it up into "chunks".  If the order is placed successfully, you should see messages similiar to the ones below where the "status" is indicated as "Accepted":
+3. Depending how big your order is for a site, the script may split it up into "chunks".  If Planet API accepts the order, the "status" will be "Accepted", as is shown below for sites "PlumIsland" and "ProvinceTown":
    ```console
    Preparing order for PlumIsland
    Number of chunks: 1
@@ -147,4 +147,42 @@ https://developers.planet.com/apis/orders/product-bundles-reference/
    Order Name: 04_ProvinceTown_2016_2017_chunk_0 
    Status: Accepted 
    Order ID: 7a9cf439-faf1-4101-b1bd-fbc9424bba43
-  ```
+   ```
+
+## Check on Order Status
+1. The order may take some time to process by the Planet's server.  You can check the status of your order by using the **check** commmand.  When you placed the order in the previous step, a suggested check command is printed to the console that you can use to check the status of the specific order you placed.
+   ```console
+   ...
+   To check on order, use the command below:
+
+   psites.py check -min_y 2016 -max_y 2017 -gjson ./example/aoi_geojson 
+   ```
+
+2. When running a **check** command, three summary tables may appear in the console.
+   * Failed Orders - A list of orders that were accepted but failed for some reason.
+   * Not Ready Orders - Orders that are still being processed by Planet Servers.
+   * Ready Orders - Orders that have successfully processed and ready for download.
+  
+     Below is an example output from the **check** command.
+     ```console
+     ######## FAILED ORDERS ###########
+     Order Name                          Status   Created On                ID                                            Last Message
+     ProvinceTown_2016_2017_chunk_0      failed   2024-01-31T17:51:34.395Z  7a9cf439-faf1-4101-b1bd-fbc9424bba43          Quota check failed - Over quota
+     
+     ########### READY ORDERS ###########
+     Order Name                          Status   Created On                ID                                       Last Message
+     ProvinceTown_2016_2017_chunk_0      success  2024-01-24T16:53:20.420Z  a9737d01-5940-400d-9c88-566377b2624f     Manifest delivery completed
+
+     ```
+## Downloading Data
+When running the **check** command, the last line printed to the console provides the **download** command you can use to download the orders you see summarized above.  Below is an example console print out you might get:
+   
+```console
+...
+Use the following download command to download the files for successful orders listed above:
+psites.py download -min_y 2016 -max_y 2017 -gjson ./example/aoi_geojson  <YOUR OUTPUT PATH>
+```
+
+Make sure to substitute "\<YOUR OUTPUT PATH\>" with the directory path of where you want to download the items to.  In this directory, a directory for each site will be created and the data will be downloaded to those directories.  
+
+If you have some files that fail to download, run the **download** command again.  The script will skip any files that were already downloaded already.
