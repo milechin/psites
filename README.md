@@ -205,3 +205,23 @@ psites.py download -min_y 2016 -max_y 2017 -gjson ./example/aoi_geojson  <YOUR O
 Make sure to substitute "\<YOUR OUTPUT PATH\>" with the directory path of where you want to download the items to.  In this directory, a directory for each site will be created and the data will be downloaded to those directories.  
 
 If you have some files that fail to download, run the **download** command again.  The script will skip any files that were already downloaded already.
+
+# Troubleshooting
+## Exception - Order name already exists
+```console
+   ...
+   
+   Exception: Order name 'PlumIsland_2016_2017*' already exists on the Planet Server.
+   Use --order_name_prefix flag to make order name unique or change the name of the geojson file.
+   ```
+   This indicates that the order name already exists.  Ordernames are used to track which orders are associated with which GeoJSON site.  To make the order name unique, include the `--order_name_prefix <string>` to add a prefix to the order name.  For example:
+   ```bash
+   python psites.py order --order_name_prefix 01 -bundle analytic_udm2 -item PSScene 2016 2017 ./example/aoi_geojson
+   ```
+   The command above will generate an order name `01_PlumIsland_2016_2017*`
+
+## Clip tool permission issue
+The script by default will include the clip tool as an option during the order.  Not all accounts have access to this tool and so an order may fail.  To disable the clip tool in the order, add ``--no-clip`` option to the order command.  For example:
+   ```bash
+   python psites.py order --no-clip -bundle analytic_udm2 -item PSScene 2016 2017 ./example/aoi_geojson
+   ```
