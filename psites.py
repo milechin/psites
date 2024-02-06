@@ -316,13 +316,15 @@ class aoi_order(aoi):
                  prefix,     
                  min_cloud=0.0, 
                  max_cloud=0.5, 
-                 allowed=True):
+                 allowed=True, 
+                 clip=False):
         super().__init__(geom_path, min_year, max_year, min_cloud, max_cloud, allowed)
         
         
         self.item_type = item_type
         self.bundle = bundle
         self.prefix = prefix + "_" if prefix != None else ""
+        self.clip = clip
         
         current_orders = get_order_list()
         
@@ -366,34 +368,59 @@ class aoi_order(aoi):
         headers = {'content-type': 'application/json'}
         PLANET_API_KEY = os.getenv('PL_API_KEY')
         
+        
         with requests.Session() as session:
             # Authenticate
             session.auth = (PLANET_API_KEY, "")
             for count, chunk in enumerate(self.order_chunks):
                 order_name = "{}_chunk_{}".format(self.order_name, count)
                 
-                request = {  
-                   "name": order_name,
-                   "order_type": "partial",
-                   "products":[
-                      {  
-                         "item_ids": chunk,
-                         "item_type": self.item_type,
-                          
-                         "product_bundle": self.bundle
-                      }
-                   ],
-                   "tools": [
-                    {
-                      "clip": {
-                        "aoi": {
-                          "type": "Polygon",
-                          "coordinates": self.aoi_feature["coordinates"]
-                        }
-                      }
+                if self.clip == False:
+                    request = {  
+                       "name": order_name,
+                       "order_type": "partial",
+                       "products":[
+                          {  
+                             "item_ids": chunk,
+                             "item_type": self.item_type,
+                              
+                             "product_bundle": self.bundle
+                          }
+                       ],
+                      #  "tools": [
+                      #   {
+                      #     "clip": {
+                      #       "aoi": {
+                      #         "type": "Polygon",
+                      #         "coordinates": self.aoi_feature["coordinates"]
+                      #       }
+                      #     }
+                      #   }
+                      # ]
                     }
-                  ]
-                }
+                else:
+                    request = {  
+                       "name": order_name,
+                       "order_type": "partial",
+                       "products":[
+                          {  
+                             "item_ids": chunk,
+                             "item_type": self.item_type,
+                              
+                             "product_bundle": self.bundle
+                          }
+                       ],
+                        "tools": [
+                         {
+                           "clip": {
+                             "aoi": {
+                               "type": "Polygon",
+                               "coordinates": self.aoi_feature["coordinates"]
+                             }
+                           }
+                         }
+                       ]
+                    }
                 
                
                 status = None
@@ -696,7 +723,8 @@ def order(geometry_path,
          max_cloud, 
          api_item_type, 
          product_bundle,
-         prefix):
+         prefix, 
+         clip):
 
     
     json_files = get_gjson_filelist(geometry_path)
@@ -712,7 +740,8 @@ def order(geometry_path,
                     max_cloud = max_cloud,
                     item_type = api_item_type,
                     bundle = product_bundle,
-                    prefix = prefix
+                    prefix = prefix, 
+                    clip = clip
                     ) for site in json_files]
     
     
@@ -899,7 +928,6 @@ def get_data(order_list, output_dir):
     return summary
 
 
-# [{'order_name': 'Boston_2016_2017_chunk_2', 'failed': 2, 'skipped': 387, 'success': 1874, 'order_id': 'a9737d01-5940-400d-9c88-566377b2624f', 'failed_files': [{'filename': '20161026_132339_1_0d05_3B_udm2_clip.tif', 'status_code': 500}, {'filename': '20161024_142108_1_0c45_3B_AnalyticMS_metadata_clip.xml', 'status_code': 500}]}]
 
 def print_download_summary(summary, output_dir):
     
@@ -1020,6 +1048,7 @@ if __name__ == "__main__":
     subparser_order.add_argument("-item", "--api_item_type", help="Planet item types to order.", type=str, default="PSScene")
     subparser_order.add_argument("-bundle", "--api_product_bundle", help="Planet bundle names used for placing orders.", type=str, default="analytic_udm2")
     subparser_order.add_argument("-prefix", "--order_name_prefix", help="Add a prefix to the order name in order, to make it unique.", type=str)
+    subparser_order.add_argument("--clip", action=argparse.BooleanOptionalAction, help="Enable or disable clip tool when ordering")
     subparser_order.add_argument("min_year", help="Starting year of interest, YYYY format", type=int)
     subparser_order.add_argument("max_year", help="Ending year of interest, YYYY format", type=int)
     subparser_order.add_argument("geojson_files", help="Path to directory containing GeoJSON Files representing Area of Interest", type=str)
@@ -1075,7 +1104,8 @@ if __name__ == "__main__":
               max_cloud = args.max_cloud,
               api_item_type = args.api_item_type,
               product_bundle = args.api_product_bundle,
-              prefix = args.order_name_prefix
+              prefix = args.order_name_prefix, 
+              clip = args.clip
               )
         
         prefix_flag =  "-prefix "+ args.order_name_prefix  if args.order_name_prefix != None else ""
