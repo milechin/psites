@@ -57,8 +57,8 @@ class aoi:
                                        api_cloud_cover_min= min_cloud, 
                                        api_cloud_cover_max=max_cloud )
         self.allowed = allowed
-        self.search_results = None
-        self.permission_tracker = None
+        self.search_results = {}
+        self.permission_tracker = []
         self.quick_result = None
         
         
@@ -138,10 +138,9 @@ class aoi:
         self.quick_result = []
         self.id_list = []
         self.order_chunks = None
+        self.search_results = {}
+        self.permission_tracker = []
         
-        # Create a dict to store how many items contain the desired assetts
-        permission_tracker = []
-        year_tracker = {}
           
         coords = self.aoi_feature["coordinates"]      # Feature coordinates
         api_filter = self.api_filter    # Filter to use for the search
@@ -168,79 +167,81 @@ class aoi:
         if(res.status_code != 200):
             self.__write_log__("Quick search  failed with code {}".format(res.status_code))
             self.__write_log__(json.dumps(res.json(), indent=2))
-        else:
-            
-            geojson = res.json()    # retrieve API results
-            self.quick_result.extend(geojson["features"])      # Save API results to aoi object
-            
-            
-            # Check if 0 results were returned, if yes, continue to the next feature
-            if(len(geojson["features"]) == 0):
-                self.__write_log__("0 IDs returned in quick search.")
-            
-            # The API return may contain multiple pages of results.
-            # Retrieve each page via "_next" until the feature count is 0.
-            page = 1
+            return
+        
+        response = res.json()    # retrieve API results
+        self.quick_result.extend(response["features"])      # Save API results to aoi object
+        
+        
+        # Check if 0 results were returned, if yes, continue to the next feature
+        if(len(response["features"]) == 0):
+            self.__write_log__("0 IDs returned in quick search.")
+            return
+        
+     # The API return may contain multiple pages of results.
+        # Retrieve each page via "_next" until the feature count is 0.
+        page = 1
 
-                # Save ID for item in a list
+        print("\rProcessing page {}".format(page), end="")
+        # Extract the file IDs to be downloaded and append them to id_list
+        self.extract_search_results( response)
+
+        # Get the next page.  Sleep for 5 seconds so we are not hammering the server. 
+        next_url = response["_links"]["_next"]
+        
+        while(next_url != None):
+            page = page + 1
+            time.sleep(0.1)
+            res = session.get(next_url)
             
+            print("\rProcessing page {}".format(page), end="")
+
+            # Check if API call is a success
+            if(res.status_code != 200):
+                self.__write_log__("Next page retrieval failed with code {}".format(res.status_code))
+                self.__write_log__(json.dumps(res.json(), indent=2))
+                self.__write_log__("Failed to retrieve entire list of results.  Check the status code to determine if its a server issue or user issue.")
+                return
             
-            while(len(geojson["features"]) > 0):
-                print("\rProcessing page {}".format(page), end="")
-                # Extract the file IDs to be downloaded and append them to id_list
-                for feature in geojson["features"]:
-                    self.id_list.append(feature["id"])
+            # Append the results to the json file already created.
+            response = res.json()
+            
+            self.quick_result.extend(response["features"])
+
+            next_url = response["_links"]["_next"]
+
+        self.extract_search_results( response) 
+        
+        print("\n")
+        self.api_filter = api_filter
+            
+
+    def extract_search_results(self, response):
+        for feature in response["features"]:
+            self.id_list.append(feature["id"])
                     
-                    aq_year = str(dt.strptime(feature["properties"]["acquired"], date_format).year)
-                    item_type = feature["properties"]["item_type"]
+            aq_year = str(dt.strptime(feature["properties"]["acquired"], date_format).year)
+            item_type = feature["properties"]["item_type"]
                     
-                    if aq_year not in year_tracker.keys():
-                        year_tracker[aq_year] = {item_type : {"assets_tracker": {}, "item_count": 1 }}
-                    elif (item_type not in year_tracker[aq_year].keys()):
-                        year_tracker[aq_year][item_type] = {"assets_tracker": {}, "item_count": 1 }
-                    else:
-                        year_tracker[aq_year][item_type]["item_count"] = year_tracker[aq_year][item_type]["item_count"] + 1
+            if aq_year not in self.search_results.keys():
+                self.search_results[aq_year] = {item_type : {"assets_tracker": {}, "item_count": 1 }}
+            elif (item_type not in self.search_results[aq_year].keys()):
+                self.search_results[aq_year][item_type] = {"assets_tracker": {}, "item_count": 1 }
+            else:
+                self.search_results[aq_year][item_type]["item_count"] = self.search_results[aq_year][item_type]["item_count"] + 1
                         
                     
 
-                    for asset in feature["assets"]:
-                        if asset in year_tracker[aq_year][item_type]["assets_tracker"].keys():
-                            year_tracker[aq_year][item_type]["assets_tracker"][asset]  = year_tracker[aq_year][item_type]["assets_tracker"][asset] + 1
-                        else:
-                            year_tracker[aq_year][item_type]["assets_tracker"][asset]  = 1
+            for asset in feature["assets"]:
+                if asset in self.search_results[aq_year][item_type]["assets_tracker"].keys():
+                    self.search_results[aq_year][item_type]["assets_tracker"][asset]  = self.search_results[aq_year][item_type]["assets_tracker"][asset] + 1
+                else:
+                    self.search_results[aq_year][item_type]["assets_tracker"][asset]  = 1
                             
-                    for permission in feature["_permissions"]:
-                        parsed_perm = permission.split(sep=".")[1].split(sep=":")[0]
-                        if parsed_perm not in permission_tracker:
-                            permission_tracker.append(parsed_perm)
-                            
-                 
-                page = page + 1
-                
-                # Get the next page.  Sleep for 5 seconds so we are not hammering the server. 
-                next_url = geojson["_links"]["_next"]
-                
-                time.sleep(0.1)
-                    
-                res = session.get(next_url)
-                
-                # Check if API call is a success
-                if(res.status_code != 200):
-                    self.__write_log__("Next page retrieval failed with code {}".format(res.status_code))
-                    self.__write_log__(json.dumps(res.json(), indent=2))
-                    self.__write_log__("Failed to retrieve entire list of results.  Check the status code to determine if its a server issue or user issue.")
-                
-                # Append the results to the json file already created.
-                geojson = res.json()
-                
-                self.quick_result.extend(geojson["features"]) 
-            
-            print("\n")
-            self.api_filter = api_filter
-            
-                  
-        self.search_results = year_tracker
-        self.permission_tracker = permission_tracker
+            for permission in feature["_permissions"]:
+                parsed_perm = permission.split(sep=".")[1].split(sep=":")[0]
+                if parsed_perm not in self.permission_tracker:
+                    self.permission_tracker.append(parsed_perm)
     
     def print_search(self):   
         
