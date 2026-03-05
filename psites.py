@@ -128,7 +128,7 @@ class aoi:
         print("Asking Planet for results.")
         
         # Get the API Key
-        PLANET_API_KEY = os.environ["PL_API_KEY"] 
+        PLANET_API_KEY = get_api_key()
         
         # Setup the session to communicate with Planet's API
         session = requests.Session()
@@ -280,7 +280,7 @@ class aoi:
         
         print("\nITEM TYPE DEFINITIONS")   
         
-        PLANET_API_KEY = os.environ["PL_API_KEY"] 
+        PLANET_API_KEY = get_api_key()
         with requests.Session() as session:
             session.auth = (PLANET_API_KEY, "")
             response = session.get("https://api.planet.com/data/v1/item-types")
@@ -292,7 +292,7 @@ class aoi:
             
         print("\nASSET NAME DEFINITIONS")   
         
-        PLANET_API_KEY = os.environ["PL_API_KEY"] 
+        PLANET_API_KEY = get_api_key()
         with requests.Session() as session:
             session.auth = (PLANET_API_KEY, "")
             response = session.get("https://api.planet.com/data/v1/asset-types")
@@ -367,7 +367,7 @@ class aoi_order(aoi):
         
         
         headers = {'content-type': 'application/json'}
-        PLANET_API_KEY = os.getenv('PL_API_KEY')
+        PLANET_API_KEY = get_api_key()
         
         
         with requests.Session() as session:
@@ -461,17 +461,7 @@ def check_base_server(subs_url=subs_url):
     
     print("Authenticating with Planet Server....", end="")
     # Extract the API key from the environment variable
-    PLANET_API_KEY = os.getenv('PL_API_KEY')
-    
-    # Check if the key exists, if not request for it
-    if(isinstance(PLANET_API_KEY, str) == False or len(PLANET_API_KEY) == 0):
-        print("Please provide API key below, or define it by setting" + \
-                " the PL_API_KEY environment variable before running the code.")
-                    
-        PLANET_API_KEY = input('Planet API Key ( or q to quit) : ')
-        
-        if(PLANET_API_KEY.lower() == 'q'):
-            sys.exit()
+    PLANET_API_KEY = get_api_key()
     
     # Loop until authentication is successful or 'q' is hit
     while True:
@@ -502,6 +492,20 @@ def check_base_server(subs_url=subs_url):
     
     # Set environment variable PL_API_KEY with the key
     os.environ["PL_API_KEY"] = PLANET_API_KEY
+
+def get_api_key():
+    PLANET_API_KEY = os.getenv('PL_API_KEY')
+    
+    # Check if the key exists, if not request for it
+    if(isinstance(PLANET_API_KEY, str) == False or len(PLANET_API_KEY) == 0):
+        print("Please provide API key below, or define it by setting" + \
+                " the PL_API_KEY environment variable before running the code.")
+                    
+        PLANET_API_KEY = input('Planet API Key ( or q to quit) : ')
+        
+        if(PLANET_API_KEY.lower() == 'q'):
+            sys.exit()
+    return PLANET_API_KEY
     
     
     
@@ -621,7 +625,7 @@ def get_gjson_filelist(geojson_path):
 
 def get_order_list(order_url=orders_url):
     
-    PLANET_API_KEY = os.getenv('PL_API_KEY')
+    PLANET_API_KEY = get_api_key()
     
     orders_list = []
     with requests.Session() as session:
