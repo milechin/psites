@@ -130,9 +130,6 @@ class aoi:
         # Get the API Key
         PLANET_API_KEY = get_api_key()
         
-        # Setup the session to communicate with Planet's API
-        session = requests.Session()
-        session.auth = (PLANET_API_KEY, "")
         
         # Reset quick_result object
         self.quick_result = []
@@ -161,7 +158,10 @@ class aoi:
         request = { "filter" : api_filter, "item_types" : item_types }
     
         # Send the POST request to the API stats endpoint
-        res = session.post(quick_url, json=request)
+        # Setup the session to communicate with Planet's API
+        with requests.Session() as session:
+            session.auth = (PLANET_API_KEY, "")
+            res = session.post(quick_url, json=request)
         
         # Check the status code
         if(res.status_code != 200):
@@ -192,7 +192,9 @@ class aoi:
         while(next_url != None):
             page = page + 1
             time.sleep(0.1)
-            res = session.get(next_url)
+            with requests.Session() as session:
+                session.auth = (PLANET_API_KEY, "")
+                res = session.get(next_url)
             
             print("\rProcessing page {}".format(page), end="")
 
@@ -467,9 +469,9 @@ def check_base_server(subs_url=subs_url):
     while True:
         
         # Setup test session
-        session = requests.Session()
-        session.auth = (PLANET_API_KEY, "")
-        res = session.get(subs_url)
+        with requests.Session() as session:
+            session.auth = (PLANET_API_KEY, "")
+            res = session.get(subs_url)
         
         # Check status code
         if(res.status_code == 401):
@@ -631,8 +633,6 @@ def get_order_list(order_url=orders_url):
     with requests.Session() as session:
         # Authenticate
         session.auth = (PLANET_API_KEY, "")
-        
-        
         response = session.get(order_url)
         
         if(response.status_code == 200):
