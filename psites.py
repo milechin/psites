@@ -184,7 +184,7 @@ class aoi:
 
         print("\rProcessing page {}".format(page), end="")
         # Extract the file IDs to be downloaded and append them to id_list
-        self.extract_search_results( response)
+        #self.extract_search_results( response)
 
         # Get the next page.  Sleep for 5 seconds so we are not hammering the server. 
         next_url = response["_links"]["_next"]
@@ -205,21 +205,23 @@ class aoi:
                 self.__write_log__("Failed to retrieve entire list of results.  Check the status code to determine if its a server issue or user issue.")
                 return
             
-            # Append the results to the json file already created.
-            response = res.json()
+            res_json = res.json()
             
-            self.quick_result.extend(response["features"])
+            # Append the results to the json file already created.
+            response['features'].extend(res_json['features'])
+            
+            self.quick_result.extend(res_json["features"])
 
-            next_url = response["_links"]["_next"]
+            next_url = res_json["_links"]["_next"]
 
-        self.extract_search_results( response) 
+        self.extract_search_results(response['features']) 
         
         print("\n")
         self.api_filter = api_filter
             
 
-    def extract_search_results(self, response):
-        for feature in response["features"]:
+    def extract_search_results(self, features):
+        for feature in features:
             self.id_list.append(feature["id"])
                     
             aq_year = str(dt.strptime(feature["properties"]["acquired"], date_format).year)
