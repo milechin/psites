@@ -628,18 +628,21 @@ def get_gjson_filelist(geojson_path):
 def get_order_list(order_url=orders_url):
     
     PLANET_API_KEY = get_api_key()
-    
     orders_list = []
+
     with requests.Session() as session:
         # Authenticate
         session.auth = (PLANET_API_KEY, "")
         response = session.get(order_url)
+
+        if(response.status_code != 200):
+            print("Error connecting with server.  Status Code: {}".format(response.status_code))
+            return orders_list 
         
-        if(response.status_code == 200):
-            
-            order_resp = response.json()
-            if("orders" in order_resp):
-                orders_list.extend(order_resp["orders"])
+       
+        order_resp = response.json()
+        if("orders" in order_resp):
+            orders_list.extend(order_resp["orders"])
         
         
         while("next" in response.json()["_links"]):
